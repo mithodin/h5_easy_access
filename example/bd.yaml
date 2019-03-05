@@ -1,0 +1,28 @@
+name: "bd"
+silent: true
+groups:
+  - name: "log"
+    tables: 
+      - name: "frames"
+        columns:
+          - {name: "frame", type: "unsigned int"}
+          - {name: "time", type: "double"}
+          - {name: "v", type: "double", shape: [num_particles,dimension]}
+          - {name: "r", type: "double", shape: [num_particles,dimension]}
+    attributes:
+      - {name: "dimension", type: "unsigned int"}
+      - {name: "num_particles", type: "unsigned int"}
+      - {name: "sigma", type: "double"}
+      - {name: "zeta0", type: "double"}
+      - {name: "dt", type: "double"}
+      - {name: "frame_timestep", type: "double"}
+      - {name: "time", type: "double"}
+      - {name: "time_init", type: "double", default: 0}
+      - {name: "sizes", type: "double", shape: [dimension]}
+      - {name: "behaviour", type: "int", shape: [dimension]}
+      - {name: "force_init_x" ,type: "char", shape: [200], default: "0.0", h5name: "force-init-x"}
+      - {name: "force_init_y" ,type: "char", shape: [200], default: "0.0", h5name: "force-init-y"}
+      - {name: "force_init_z" ,type: "char", shape: [200], default: "0.0", h5name: "force-init-z"}
+      - {name: "force_x" ,type: "char", shape: [200], default: "0.0", h5name: "force-x"}
+      - {name: "force_y" ,type: "char", shape: [200], default: "0.0", h5name: "force-y"}
+      - {name: "force_z" ,type: "char", shape: [200], default: "0.0", h5name: "force-z"}
