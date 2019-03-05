@@ -63,3 +63,16 @@ The C data type of your field. Subject to the same constraints as attribute type
 
 ##### shape (optional)
 Column entries can be multidimensional arrays. Shape is an array of sizes for each of the dimensions of your column entry. You can use integer numbers or names of attributes from the parent group as sizes.
+
+# Generate your source
+`generate_interface.py` is a Python 3 script that will generate two files: A C source file and a header. Include the header in your C program and compile it together with the C source file.
+
+The script depends on [pyyaml](https://pyyaml.org/).
+
+# Use the generated interface
+The interface makes use of quite a few `struct`s as a sort of poor man's objects to contain the description of your hdf5 file.
+For every `struct`, there is a destructor function. Use that or you may experience memory leaks.
+Freeing the pointers is not enough.
+
+## `<prefix>_file`
+This struct contains everything concerning your hdf5 file itself. You get one by either opening an existing hdf5 file with `<prefix>_open` or creating a new one with `<prefix>_create`.
