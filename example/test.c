@@ -36,12 +36,22 @@ int main(void){
 	}else{
 		return 1;
 	}
-	bd_group_log_attributes attrs = {3,10,1.0,1.0,1e-5,1.0,10.0,0.0,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+	bd_group_log_attributes attrs = {3,2,1.0,1.0,1e-5,1.0,10.0,0.0,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 	g0 = bd_create_group_log(h5f, attrs, "flubber");
 	if( g0 ){
 		printf("group created.\n");
 	}else{
 		return 1;
+	}
+
+	tb = bd_create_table_frames(g0,"heinz");
+	{
+		unsigned int frame = 0;
+		double time = 0.0;
+		double v[6] = {1.,0.,0.,0.,1.,0.};
+		double r[6] = {1.,1.,1.,2.,2.,2.};
+		bd_table_frames_record rec0 = {&frame,&time,v,r};
+		bd_add_records_frames(tb,1,&rec0);
 	}
 	bd_close_group_log(g0);
 	bd_close(h5f);

@@ -158,6 +158,50 @@ code_include_table = """{name}_table_{tname}_t {name}_open_table_{tname}({name}_
 void {name}_close_table_{tname}({name}_table_{tname}_t);
 bool {name}_get_records_{tname}({name}_table_{tname}_t, size_t, {name}_table_{tname}_recordset_t *, size_t *);
 void {name}_table_{tname}_recordset_destroy({name}_table_{tname}_recordset_t);
+{name}_table_{tname}_t {name}_create_table_{tname}({name}_group_{gname}_t, const char *);
+void {name}_add_records_{tname}({name}_table_{tname}_t, size_t, {name}_table_{tname}_record_t);
+"""
+
+code_create_table = """{name}_table_{tname}_t {name}_create_table_{tname}({name}_group_{gname}_t group, const char *tname){{
+    herr_t ret;
+    {name}_table_{tname}_t table = malloc(sizeof({name}_table_{tname}));
+    table->name = strdup(tname);
+    table->num_columns = {num_columns};
+    table->num_records = 0;
+    table->column_offsets = calloc({num_columns},sizeof(size_t));
+    table->column_sizes = calloc({num_columns},sizeof(size_t));
+    table->column_h5types = calloc({num_columns},sizeof(hid_t));
+    table->column_names = calloc({num_columns},sizeof(char *));
+    table->parent = group;
+{init_columns}
+    table->record_size = 0;
+    for(int i=0;i<{num_columns};++i){{
+        table->column_offsets[i] = table->record_size;
+        table->record_size += table->column_sizes[i];
+    }}
+    ret = H5TBmake_table(tname, group->h5_group, tname, table->num_columns, 0, table->record_size, (const char **)table->column_names, table->column_offsets, table->column_h5types, 20, NULL, 5, NULL);
+    if( ret < 0 ){{
+        {name}_close_table_{tname}(table);
+        return NULL;
+    }}
+    return table;
+}}
+
+"""
+
+code_append_record = """void {name}_add_records_{tname}({name}_table_{tname}_t table, size_t num_records, {name}_table_{tname}_record_t records){{
+    void *data_chunk = calloc(num_records,table->record_size);
+    for(int i=0;i<num_records;++i){{
+        void *data = data_chunk+(i*table->record_size);
+{assign_fields}
+    }}
+    herr_t ret = H5TBappend_records(table->parent->h5_group,table->name,num_records,table->record_size,table->column_offsets,table->column_sizes,data_chunk);
+    if( ret < 0 ){{
+        printf("failed to append records to table %s\\n",table->name);
+    }}
+    free(data_chunk);
+}}
+
 """
 
 code_include = """{name}_file_t {name}_open(const char *, const char *, bool);
@@ -399,6 +443,9 @@ if __name__ == "__main__":
             for table in group["tables"]:
                 assign_fields = ""
                 case = None
+                init_columns = ""
+                assign_columns = ""
+                column_index = 0
                 for column in sorted(table["columns"],key=lambda e:e["name"]):
                     if case != column["name"][0]:
                         if case is not None:
@@ -408,8 +455,25 @@ if __name__ == "__main__":
                     assign_fields += """                  if( strcmp(table->column_names[j],\"{cname}\") == 0 ){{
                      rec->{cname} = ({ctype} *)(mydata+table->column_offsets[j]);
                   }}\n""".format(cname=column["name"],ctype=column["type"])
+                    #code for table creation
+                    try:
+                        column_size = "*".join([int_or_var(name,"group->attributes.") for name in column["shape"]])
+                        column_size_arr = ",".join([int_or_var(name,"group->attributes.") for name in column["shape"]])
+                        dims = len(column["shape"])
+                        init_columns += "    {{\n        hsize_t array_dims[{dim}] = {{ {sizes} }};\n".format(dim=dims,sizes=column_size_arr)
+                        init_columns += "        table->column_h5types[{i}] = H5Tarray_create({h5type},{dim},array_dims);\n    }}\n".format(i=column_index,h5type=h5_types[column["type"]],dim=dims)
+                    except KeyError:
+                        column_size = "1"
+                        init_columns += "    table->column_h5types[{i}] = {h5type};\n".format(i=column_index,h5type=h5_types[column["type"]])
+                    init_columns += "    table->column_sizes[{i}] = sizeof({dtype})*{size};\n".format(i=column_index,dtype=column["type"],size=column_size)
+                    init_columns += "    table->column_names[{i}] = strdup(\"{cname}\");\n".format(i=column_index,cname=column["name"])
+                    #code for record insertion
+                    assign_columns += "        memcpy(data+table->column_offsets[{i}],records[i].{cname},table->column_sizes[{i}]);\n".format(i=column_index,cname=column["name"])
+                    column_index += 1;
                 assign_fields += "                  break;"
                 sourcefile.write(code_open_table.format(name=config["name"],gname=group["name"],tname=table["name"],assign_fields=assign_fields));
+                sourcefile.write(code_create_table.format(name=config["name"],gname=group["name"],tname=table["name"],num_columns=len(table["columns"]),init_columns=init_columns));
+                sourcefile.write(code_append_record.format(name=config["name"],gname=group["name"],tname=table["name"],num_columns=len(table["columns"]),assign_fields=assign_columns));
     
     with open("h5_interface_{}.h".format(config["name"]),"w") as headerfile:
         headerfile.write(code_logfile_header.format(rnd_name(),name=config["name"]))
