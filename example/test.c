@@ -52,6 +52,8 @@ int main(void){
 		double r[6] = {1.,1.,1.,2.,2.,2.};
 		bd_table_frames_record rec0 = {&frame,&time,v,r};
 		bd_add_records_frames(tb,1,&rec0);
+		bd_add_records_frames(tb,1,&rec0);
+		bd_add_records_frames(tb,1,&rec0);
 	}
 	bd_close_group_log(g0);
 	bd_close(h5f);
