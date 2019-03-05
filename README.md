@@ -38,10 +38,28 @@ The name of the attribute. Must be a valid C variable name.
 The C data type of your attribute. Not all are supported. Create an issue if your favourite data type is not supported.
 
 #### shape (optional)
-Attributes can be multidimensional arrays. Shape is an array of sizes for each of the dimensions of your attribute. You can use integer numbers or names of other attributes as sizes.
+Attributes can be multidimensional arrays. Shape is an array of sizes for each of the dimensions of your attribute. You can use integer numbers or names of other attributes as sizes. If you use the name of another attribute here, it must be defined earlier in the list.
 
 #### default (optional)
 Here, you can give a default value for your attribute. For char array attributes, you can put a string here.
 
 #### h5name (optional)
 Here, you can put an additional name for the attribute that is only used inside the hdf5 file. This name can be any string, whereas `name` must be a valid C variable name.
+
+### tables
+This field contains a list of table types that can be created below the parent group. Each entry consists of two sub-fields.
+
+#### name
+The name of the table type. Will be used in the names of the generated functions.
+
+#### columns
+This field contains - you guessed it - a list of columns for your table type. Each entry consists of at least two sub-fields.
+
+##### name
+Guess what.
+
+##### type
+The C data type of your field. Subject to the same constraints as attribute types.
+
+##### shape (optional)
+Column entries can be multidimensional arrays. Shape is an array of sizes for each of the dimensions of your column entry. You can use integer numbers or names of attributes from the parent group as sizes.
