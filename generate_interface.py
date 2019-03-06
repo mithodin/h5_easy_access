@@ -33,6 +33,7 @@ code_logfile_header = """#ifndef _HDF_HL_H
 typedef struct _{} {{
     hid_t root;
     hid_t h5_file;
+    bool rw;
 }} {name}_file;
 
 typedef {name}_file * {name}_file_t;
@@ -146,7 +147,7 @@ bool {name}_get_records_{tname}({name}_table_{tname}_t table, size_t start, {nam
     return true;
 }}
 
-void {name}_table_{tname}_recordset_destroy({name}_table_{tname}_recordset_t rec){{
+void {name}_close_table_{tname}_recordset({name}_table_{tname}_recordset_t rec){{
     free(rec->set);
     free(rec->data_raw);
     free(rec);
@@ -157,7 +158,7 @@ void {name}_table_{tname}_recordset_destroy({name}_table_{tname}_recordset_t rec
 code_include_table = """{name}_table_{tname}_t {name}_open_table_{tname}({name}_group_{gname}_t, const char *);
 void {name}_close_table_{tname}({name}_table_{tname}_t);
 bool {name}_get_records_{tname}({name}_table_{tname}_t, size_t, {name}_table_{tname}_recordset_t *, size_t *);
-void {name}_table_{tname}_recordset_destroy({name}_table_{tname}_recordset_t);
+void {name}_close_table_{tname}_recordset({name}_table_{tname}_recordset_t);
 {name}_table_{tname}_t {name}_create_table_{tname}({name}_group_{gname}_t, const char *);
 void {name}_add_records_{tname}({name}_table_{tname}_t, size_t, {name}_table_{tname}_record_t);
 """
@@ -313,7 +314,9 @@ void {name}_group_{gtype}_attribute_sync({name}_group_{gtype}_t group){{
 """
 
 code_close_group = """void {name}_close_group_{gtype}({name}_group_{gtype}_t group){{
-    {name}_group_{gtype}_attribute_sync(group);
+    if( group->parent->rw ){{
+        {name}_group_{gtype}_attribute_sync(group);
+    }}
 {free_attributes}
     H5Gclose(group->h5_group);
     free(group->name);
@@ -330,6 +333,7 @@ code_open = """{name}_file_t {name}_open(const char *filename, const char *root,
     if( !open_file(filename, &(lf->h5_file), rw) ){{
         return NULL;
     }}
+    lf->rw = rw;
     if( !root ){{
         root = "/";
     }}
@@ -351,6 +355,7 @@ code_open = """{name}_file_t {name}_open(const char *filename, const char *root,
         return NULL;
     }}else{{
         lf->root = H5Gopen(lf->h5_file,"/",H5P_DEFAULT);
+        lf->rw = true;
         return lf;
     }}
 }}

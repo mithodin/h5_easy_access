@@ -20,7 +20,7 @@ int main(void){
 	size_t num_records = 2;
 	bd_get_records_frames(tb, 0, &r0, &num_records);
 	printf("r0->r[0] = (%f,%f,%f)\n",r0->set[0].r[0],r0->set[0].r[1],r0->set[0].r[2]);
-	bd_table_frames_recordset_destroy(r0);
+	bd_close_table_frames_recordset(r0);
 	bd_close_table_frames(tb);
 	bd_close_group_log(g0);
 	bd_close(h5f);
