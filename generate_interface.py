@@ -313,6 +313,7 @@ void {name}_group_{gtype}_attribute_sync({name}_group_{gtype}_t group){{
 """
 
 code_close_group = """void {name}_close_group_{gtype}({name}_group_{gtype}_t group){{
+    {name}_group_{gtype}_attribute_sync(group);
 {free_attributes}
     H5Gclose(group->h5_group);
     free(group->name);
