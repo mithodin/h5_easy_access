@@ -1,5 +1,5 @@
 # h5_easy_access
-Generate a simple C interface for hdf5 files
+Generate a simple C interface for [hdf5](https://www.hdfgroup.org/solutions/hdf5/) files
 
 This is currently in early development. Reading is sort of complete, writing only supports group creation with attributes at this time.
 
@@ -77,12 +77,21 @@ Freeing the pointers is not enough.
 The naming convention for `struct`s is `<prefix>_<type>_<type name>`. `<struct name>_t` is always a pointer to `<struct name>`.
 
 ## `<prefix>_file`
-This struct contains everything concerning your hdf5 file itself. You get one by either opening an existing hdf5 file with `<prefix>_open` or creating a new one with `<prefix>_create`.
+This struct contains everything concerning your hdf5 file itself. You get one by either opening an existing hdf5 file with `<prefix>_open` or creating a new one with `<prefix>_create`. `<prefix>_create` will fail if the file already exists.
 
 ## `<prefix>_group_<group type>`
-Contains all information for an hdf5 group. You get one by either opening an existing group with `<prefix>_open_group_<group type>` or creating a new one with `<prefix>_create_group_<group type>`. Every group `struct` has a member `attributes`, which is itself a `struct` containing all the group's attributes.
+Contains all information for an hdf5 group. You get one by either opening an existing group with `<prefix>_open_group_<group type>` or creating a new one with `<prefix>_create_group_<group type>`. Every group `struct` has a member `attributes`, which is itself a `struct` containing all the group's attributes. You can change attributes by simply writing to the attribute `struct`. The values will be written back to the file once you call `<prefix>_close_group_<group type>` if the file is opened read-write.
 
 You can get a list of existing groups with `<prefix>_get_groups`.
 
 ### `<prefix>_group_<group type>_attributes`
 Contains all attributes of a group. You get it as part of your group `struct`.
+
+## `<prefix>_table_<table type>`
+Contains information about a table of a given type. You can get one by opening an existing table with `<prefix>_open_table_<table type>` or by creating one with `<prefix>_create_table_<table type>`. Read data from a table with `<prefix>_get_records_<table type>` or write data to it with `<prefix>_add_records_<table type>`.
+
+## `<prefix>_table_<table type>_record`
+Represents one record (or row) of data from a table. All data is represented via pointers and memory is managed elsewhere (by you if you create the record, or inside the recordset if the record is read from a table).
+
+## `<prefix>_table_<table type>_recordset`
+Represents a set of one or more records from a table. Get one by reading data from a table with `<prefix>_get_records_<table type>`. This object manages the memory needed to read from hdf5 tables. Use `<prefix>_close_table_<table type>_recordset` to free this memory after you are done with the records, otherwise you might leak lots of memory.
