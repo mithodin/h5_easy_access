@@ -149,7 +149,9 @@ bool {name}_get_records_{tname}({name}_table_{tname}_t table, size_t start, {nam
 }}
 
 void {name}_close_table_{tname}_recordset({name}_table_{tname}_recordset_t rec){{
-    free(rec->set);
+    if( rec->set ){{
+        free(rec->set);
+    }}
     free(rec->data_raw);
     free(rec);
 }}
