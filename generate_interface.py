@@ -162,6 +162,7 @@ bool {name}_get_records_{tname}({name}_table_{tname}_t, size_t, {name}_table_{tn
 void {name}_close_table_{tname}_recordset({name}_table_{tname}_recordset_t);
 {name}_table_{tname}_t {name}_create_table_{tname}({name}_group_{gname}_t, const char *);
 void {name}_add_records_{tname}({name}_table_{tname}_t, size_t, {name}_table_{tname}_record_t);
+void {name}_add_recordset_{tname}({name}_table_{tname}_t, {name}_table_{tname}_recordset_t);
 """
 
 code_create_table = """{name}_table_{tname}_t {name}_create_table_{tname}({name}_group_{gname}_t group, const char *tname){{
@@ -191,7 +192,15 @@ code_create_table = """{name}_table_{tname}_t {name}_create_table_{tname}({name}
 
 """
 
-code_append_record = """void {name}_add_records_{tname}({name}_table_{tname}_t table, size_t num_records, {name}_table_{tname}_record_t records){{
+code_append_record = """void {name}_add_recordset_{tname}({name}_table_{tname}_t table,  {name}_table_{tname}_recordset_t recs){{
+    herr_t ret = H5TBappend_records(table->parent->h5_group,table->name,recs->num_records,table->record_size,table->column_offsets,table->column_sizes,recs->data_raw);
+    if( ret < 0 ){{
+        printf("failed to append records to table %s\\n",table->name);
+    }}
+    {name}_close_table_{tname}_recordset(recs);
+}}
+
+void {name}_add_records_{tname}({name}_table_{tname}_t table, size_t num_records, {name}_table_{tname}_record_t records){{
     void *data_chunk = calloc(num_records,table->record_size);
     for(int i=0;i<num_records;++i){{
         void *data = data_chunk+(i*table->record_size);
