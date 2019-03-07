@@ -432,7 +432,7 @@ if __name__ == "__main__":
                         attributes_set += "    }else{\n";
                         pass
                     if( att["type"] == "char" ):
-                        attributes_set += "        ret = H5LTset_attribute_string(group->h5_group, \".\", \"{h5name}\", \"{default}\");\n".format(name=att["name"],h5name=att["h5name"],default=default)
+                        attributes_set += "        ret = H5LTset_attribute_string(group->h5_group, \".\", \"{h5name}\", group->attributes.{name});\n".format(name=att["name"],h5name=att["h5name"],default=default)
                     else:
                         attributes_set += "        ret = H5LTset_attribute_{dtype}(group->h5_group, \".\", \"{h5name}\", group->attributes.{name}, {size});\n".format(dtype=h5_att_types[att["type"]],name=att["name"],h5name=att["h5name"],size=size)
                     attributes_set += "        if( ret < 0 ){{\n            printf(\"failed to set attribute {name}\");\n        }}\n    }}\n".format(name=att["name"])
