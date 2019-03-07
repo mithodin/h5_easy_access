@@ -109,6 +109,7 @@ void {name}_close_table_{tname}({name}_table_{tname}_t tb){{
         free(tb->column_names);
         free(tb->column_sizes);
         free(tb->column_offsets);
+        free(tb->column_h5types);
         free(tb->name);
         free(tb);
 }}
