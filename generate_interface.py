@@ -7,11 +7,13 @@ import sys
 #generic config
 h5_types = {"int":"H5T_NATIVE_INT",
             "unsigned int":"H5T_NATIVE_UINT",
+            "unsigned long":"H5T_NATIVE_ULONG",
             "char":"H5T_NATIVE_CHAR",
             "double":"H5T_NATIVE_DOUBLE"}
 
 h5_att_types = {"int":"int",
                 "unsigned int":"uint",
+                "unsigned long":"ulong",
                 "char":"char",
                 "double":"double"}
 #function
