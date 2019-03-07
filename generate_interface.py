@@ -209,6 +209,7 @@ code_append_record = """void {name}_add_recordset_{tname}({name}_table_{tname}_t
     {name}_table_{tname}_recordset_t rs = malloc(sizeof({name}_table_{tname}_recordset));
     rs->set = malloc(num_records*sizeof({name}_table_{tname}_record));
     rs->data_raw = malloc(num_records*(table->record_size));
+    rs->num_records = num_records;
     for(int i=0;i<num_records;++i){{
         void *data = rs->data_raw+(i*table->record_size);
         {name}_table_{tname}_record_t record = &(rs->set[i]);
