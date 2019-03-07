@@ -165,6 +165,7 @@ void {name}_close_table_{tname}({name}_table_{tname}_t);
 bool {name}_get_records_{tname}({name}_table_{tname}_t, size_t, {name}_table_{tname}_recordset_t *, size_t *);
 void {name}_close_table_{tname}_recordset({name}_table_{tname}_recordset_t);
 {name}_table_{tname}_t {name}_create_table_{tname}({name}_group_{gname}_t, const char *);
+{name}_table_{tname}_recordset_t {name}_create_table_{tname}_recordset({name}_table_{tname}_t,size_t);
 void {name}_add_records_{tname}({name}_table_{tname}_t, size_t, {name}_table_{tname}_record_t);
 void {name}_add_recordset_{tname}({name}_table_{tname}_t, {name}_table_{tname}_recordset_t);
 """
@@ -202,6 +203,18 @@ code_append_record = """void {name}_add_recordset_{tname}({name}_table_{tname}_t
         printf("failed to append records to table %s\\n",table->name);
     }}
     {name}_close_table_{tname}_recordset(recs);
+}}
+
+{name}_table_{tname}_recordset_t {name}_create_table_{tname}_recordset({name}_table_{tname}_t table, size_t num_records){{
+    {name}_table_{tname}_recordset_t rs = malloc(sizeof({name}_table_{tname}_recordset));
+    rs->set = malloc(num_records*sizeof({name}_table_{tname}_record));
+    rs->data_raw = malloc(num_records*(table->record_size));
+    for(int i=0;i<num_records;++i){{
+        void *data = rs->data_raw+(i*table->record_size);
+        {name}_table_{tname}_record_t record = &(rs->set[i]);
+{assign_data_fields}
+    }}
+    return rs;
 }}
 
 void {name}_add_records_{tname}({name}_table_{tname}_t table, size_t num_records, {name}_table_{tname}_record_t records){{
@@ -465,6 +478,7 @@ if __name__ == "__main__":
                 case = None
                 init_columns = ""
                 assign_columns = ""
+                assign_columns_recset = ""
                 column_index = 0
                 for column in sorted(table["columns"],key=lambda e:e["name"]):
                     if case != column["name"][0]:
@@ -489,11 +503,12 @@ if __name__ == "__main__":
                     init_columns += "    table->column_names[{i}] = strdup(\"{cname}\");\n".format(i=column_index,cname=column["name"])
                     #code for record insertion
                     assign_columns += "        memcpy(data+table->column_offsets[{i}],records[i].{cname},table->column_sizes[{i}]);\n".format(i=column_index,cname=column["name"])
+                    assign_columns_recset += "        record->{cname} = data+table->column_offsets[{i}];\n".format(i=column_index,cname=column["name"])
                     column_index += 1;
                 assign_fields += "                  break;"
                 sourcefile.write(code_open_table.format(name=config["name"],gname=group["name"],tname=table["name"],assign_fields=assign_fields));
                 sourcefile.write(code_create_table.format(name=config["name"],gname=group["name"],tname=table["name"],num_columns=len(table["columns"]),init_columns=init_columns));
-                sourcefile.write(code_append_record.format(name=config["name"],gname=group["name"],tname=table["name"],num_columns=len(table["columns"]),assign_fields=assign_columns));
+                sourcefile.write(code_append_record.format(name=config["name"],gname=group["name"],tname=table["name"],num_columns=len(table["columns"]),assign_fields=assign_columns,assign_data_fields=assign_columns_recset));
     
     with open("h5_interface_{}.h".format(config["name"]),"w") as headerfile:
         headerfile.write(code_logfile_header.format(rnd_name(),name=config["name"]))
