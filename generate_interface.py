@@ -112,7 +112,7 @@ void {name}_clear_table_{tname}({name}_table_{tname}_t tb){{
     }}
     herr_t status = H5TBdelete_record(tb->parent->h5_group, tb->name, 0, tb->num_records);
     if( status < 0 ){{
-        printf("failed to delete records.\\n);
+        printf("failed to delete records.\\n");
     }}
 }}
 
