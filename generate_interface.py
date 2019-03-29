@@ -81,6 +81,7 @@ code_open_table = """{name}_table_{tname}_t {name}_open_table_{tname}({name}_gro
         free(tb);
         return NULL;
     }}
+    tb->column_h5types = NULL;
     tb->name = strdup(tname);
     tb->parent = group;
     tb->column_offsets = calloc(tb->num_columns,sizeof(size_t));
@@ -105,15 +106,17 @@ code_open_table = """{name}_table_{tname}_t {name}_open_table_{tname}({name}_gro
 }}
 
 void {name}_close_table_{tname}({name}_table_{tname}_t tb){{
-        for(int i=0;i<tb->num_columns;++i){{
-            free(tb->column_names[i]);
-        }}
-        free(tb->column_names);
-        free(tb->column_sizes);
-        free(tb->column_offsets);
+    for(int i=0;i<tb->num_columns;++i){{
+        free(tb->column_names[i]);
+    }}
+    free(tb->column_names);
+    free(tb->column_sizes);
+    free(tb->column_offsets);
+    if( tb->column_h5types ){{
         free(tb->column_h5types);
-        free(tb->name);
-        free(tb);
+    }}
+    free(tb->name);
+    free(tb);
 }}
 
 bool {name}_get_records_{tname}({name}_table_{tname}_t table, size_t start, {name}_table_{tname}_recordset_t *records, size_t *num_records){{
