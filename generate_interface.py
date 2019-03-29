@@ -105,6 +105,17 @@ code_open_table = """{name}_table_{tname}_t {name}_open_table_{tname}({name}_gro
     return tb;
 }}
 
+void {name}_clear_table_{tname}({name}_table_{tname}_t tb){{
+    if( H5TBget_table_info( tb->parent->h5_group, tb->name, &(tb->num_columns), &(tb->num_records) ) < 0 ){{
+        printf("table %s not found.\\n",tb->name);
+        return;
+    }}
+    herr_t status = H5TBdelete_record(tb->parent->h5_group, tb->name, 0, tb->num_records);
+    if( status < 0 ){{
+        printf("failed to delete records.\\n);
+    }}
+}}
+
 void {name}_close_table_{tname}({name}_table_{tname}_t tb){{
     for(int i=0;i<tb->num_columns;++i){{
         free(tb->column_names[i]);
@@ -165,6 +176,7 @@ void {name}_close_table_{tname}_recordset({name}_table_{tname}_recordset_t rec){
 
 code_include_table = """{name}_table_{tname}_t {name}_open_table_{tname}({name}_group_{gname}_t, const char *);
 void {name}_close_table_{tname}({name}_table_{tname}_t);
+void {name}_clear_table_{tname}({name}_table_{tname}_t);
 bool {name}_get_records_{tname}({name}_table_{tname}_t, size_t, {name}_table_{tname}_recordset_t *, size_t *);
 void {name}_close_table_{tname}_recordset({name}_table_{tname}_recordset_t);
 {name}_table_{tname}_t {name}_create_table_{tname}({name}_group_{gname}_t, const char *);
