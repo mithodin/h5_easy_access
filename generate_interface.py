@@ -251,6 +251,7 @@ void {name}_add_records_{tname}({name}_table_{tname}_t table, size_t num_records
 code_include = """{name}_file_t {name}_open(const char *, const char *, bool);
 {name}_file_t {name}_create(const char *);
 void {name}_close({name}_file_t);
+bool {name}_flush({name}_file_t);
 bool {name}_get_groups({name}_file_t, const char *, char ***, size_t *);
 """
 
@@ -258,6 +259,7 @@ code_include_group = """{name}_group_{gtype}_t {name}_open_group_{gtype}({name}_
 {name}_group_{gtype}_t {name}_create_group_{gtype}({name}_file_t, {name}_group_{gtype}_attributes, const char[]);
 void {name}_group_{gtype}_attribute_sync({name}_group_{gtype}_t);
 void {name}_close_group_{gtype}({name}_group_{gtype}_t group);
+bool {name}_flush_group_{gtype}({name}_group_{gtype}_t group);
 """
 
 code_headers = """#include <hdf5_hl.h>
@@ -366,6 +368,14 @@ code_close_group = """void {name}_close_group_{gtype}({name}_group_{gtype}_t gro
     free(group);
 }}
 
+bool {name}_flush_group_{gtype}({name}_group_{gtype}_t group){{
+    if( group->parent->rw ){{
+        herr_t retval = H5Fflush(group->h5_group,H5F_SCOPE_GLOBAL);
+        return retval >= 0;
+    }}
+    return false;
+}}
+
 """
 
 code_silent = "H5Eset_auto(H5E_DEFAULT, NULL, NULL);"
@@ -407,6 +417,14 @@ void {name}_close({name}_file_t lf){{
     H5Gclose(lf->root);
     H5Fclose(lf->h5_file);
     free(lf);
+}}
+
+bool {name}_flush({name}_file_t lf){{
+    if( lf->rw ){{
+        herr_t retval = H5Fflush(lf->h5_file,H5F_SCOPE_GLOBAL);
+        return retval >= 0;
+    }}
+    return false;
 }}
 
 """

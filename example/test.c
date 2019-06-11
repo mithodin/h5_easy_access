@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "h5_interface_bd.h"
@@ -56,6 +57,7 @@ int main(void){
 		bd_add_records_frames(tb,1,&rec0);
 	}
 	bd_close_group_log(g0);
+	bd_flush(h5f);
 	bd_close(h5f);
 	return 0;
 }
