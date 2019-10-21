@@ -272,23 +272,23 @@ code_headers = """#include <hdf5_hl.h>
 
 """
 
-code_open_file = """bool open_file(const char *filename, hid_t *filehandle, bool rw){
-    if( access( filename, F_OK ) == 0 ){
-        if( rw ){
+code_open_file = """bool {name}_open_file(const char *filename, hid_t *filehandle, bool rw){{
+    if( access( filename, F_OK ) == 0 ){{
+        if( rw ){{
             *filehandle = H5Fopen(filename, H5F_ACC_RDWR, H5P_DEFAULT);
-        }else{
+        }}else{{
             *filehandle = H5Fopen(filename, H5F_ACC_RDONLY, H5P_DEFAULT);
-        }
-        if(*filehandle < 0){
+        }}
+        if(*filehandle < 0){{
             printf("Error opening file.\\n");
             return false;
-        }
-    }else{
+        }}
+    }}else{{
         printf("File does not exist.\\n");
         return false;
-    }
+    }}
     return true;
-}
+}}
 
 """
 
@@ -383,7 +383,7 @@ code_silent = "H5Eset_auto(H5E_DEFAULT, NULL, NULL);"
 code_open = """{name}_file_t {name}_open(const char *filename, const char *root, bool rw){{
     {silent}
     {name}_file_t lf = malloc(sizeof({name}_file));
-    if( !open_file(filename, &(lf->h5_file), rw) ){{
+    if( !{name}_open_file(filename, &(lf->h5_file), rw) ){{
         return NULL;
     }}
     lf->rw = rw;
@@ -456,7 +456,7 @@ if __name__ == "__main__":
     
     with open("h5_interface_{}.c".format(config["name"]),"w") as sourcefile:
         sourcefile.write(code_headers.format(config["name"]))
-        sourcefile.write(code_open_file)
+        sourcefile.write(code_open_file.format(name=config["name"]))
         sourcefile.write(code_open.format(name=config["name"],silent=code_silent if config["silent"] else ""))
         sourcefile.write(code_find_groups.format(name=config["name"]))
         for group in config["groups"]:
